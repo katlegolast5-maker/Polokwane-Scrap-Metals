@@ -1,0 +1,6 @@
+{
+  "name": "Polokwane Scrap Metals",
+  "description": "High-converting marketing website for Polokwane Scrap Metals, providing top-paying scrap metal buying and recycling services in Limpopo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

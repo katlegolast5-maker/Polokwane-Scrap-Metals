@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // -------------------------------------------------------------------------
+    // GLOBAL HELPERS
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      // Check if user exists in the admins collection
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // -------------------------------------------------------------------------
+    // VALIDATION HELPERS
+    // -------------------------------------------------------------------------
+    
+    function isValidQuote(data) {
+      return data.keys().hasAll(['metalTypes', 'estimatedWeight', 'location', 'serviceType', 'name', 'phone', 'whatsappOptIn', 'preferredTime', 'createdAt'])
+        && data.keys().size() <= 10 // Allowing for optional additionalInfo
+        && data.metalTypes is list
+        && data.metalTypes.size() > 0
+        && data.metalTypes.size() <= 20
+        && data.estimatedWeight is string && data.estimatedWeight.size() <= 100
+        && data.location is string && data.location.size() <= 200
+        && data.serviceType in ['Collection', 'Drop-Off']
+        && data.name is string && data.name.size() <= 100
+        && data.phone is string && data.phone.size() <= 20
+        && data.whatsappOptIn is bool
+        && data.preferredTime is string && data.preferredTime.size() <= 100
+        && (!data.keys().contains('additionalInfo') || (data.additionalInfo is string && data.additionalInfo.size() <= 1000))
+        && data.createdAt == request.time;
+    }
+
+    function isValidContact(data) {
+      return data.keys().hasAll(['name', 'phone', 'email', 'message', 'createdAt'])
+        && data.keys().size() == 5
+        && data.name is string && data.name.size() <= 100
+        && data.phone is string && data.phone.size() <= 20
+        && data.email is string && data.email.size() <= 100
+        && data.message is string && data.message.size() <= 2000
+        && data.createdAt == request.time;
+    }
+
+    // -------------------------------------------------------------------------
+    // SECURITY RULES
+    // -------------------------------------------------------------------------
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Admins collection - Only existing admins or the system can manage
+    match /admins/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow write: if isAdmin(); // Only an admin can add another admin
+    }
+
+    // Quotes collection
+    match /quotes/{quoteId} {
+      allow create: if isValidId(quoteId) && isValidQuote(incoming());
+      allow get, list, update, delete: if isAdmin();
+    }
+
+    // Contacts collection
+    match /contacts/{contactId} {
+      allow create: if isValidId(contactId) && isValidContact(incoming());
+      allow get, list, update, delete: if isAdmin();
+    }
+  }
+}

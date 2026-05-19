@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "Quote": {
+      "title": "Quote Request",
+      "description": "Information provided by a user seeking a scrap metal quote.",
+      "type": "object",
+      "properties": {
+        "metalTypes": {
+          "type": "array",
+          "description": "Selected metal categories for the quote."
+        },
+        "estimatedWeight": {
+          "type": "string",
+          "description": "User's estimate of the scrap weight."
+        },
+        "location": {
+          "type": "string",
+          "description": "Location for collection or proximity check."
+        },
+        "serviceType": {
+          "type": "string",
+          "enum": ["Collection", "Drop-Off"],
+          "description": "How the metal will reach the yard."
+        },
+        "name": {
+          "type": "string",
+          "description": "User's full name."
+        },
+        "phone": {
+          "type": "string",
+          "description": "User's contact phone number."
+        },
+        "whatsappOptIn": {
+          "type": "boolean",
+          "description": "Whether the user wants updates via WhatsApp."
+        },
+        "preferredTime": {
+          "type": "string",
+          "description": "Preferred time for a follow-up call."
+        },
+        "additionalInfo": {
+          "type": "string",
+          "description": "Any extra notes."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server-side creation timestamp."
+        }
+      },
+      "required": ["metalTypes", "estimatedWeight", "location", "serviceType", "name", "phone", "whatsappOptIn", "preferredTime", "createdAt"]
+    },
+    "Contact": {
+      "title": "Contact Message",
+      "description": "General inquiry message from the contact form.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["name", "phone", "email", "message", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/quotes/{quoteId}": {
+      "schema": "Quote",
+      "description": "Collection of all quote requests."
+    },
+    "/contacts/{contactId}": {
+      "schema": "Contact",
+      "description": "Collection of all general contact inquiries."
+    }
+  }
+}
